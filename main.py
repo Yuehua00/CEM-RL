@@ -9,7 +9,7 @@ from learning_curve import LearningCurve
 from model import Actor, Critic
 from replay_buffer import ReplayBuffer
 from EA.ES import CEM
-from EA.EA_utils import gene_to_phene
+from EA.EA_utils import gene_to_phene, phenes_to_genes
 from evaluate import evaluate
 from train import train_critic, train_actor
 
@@ -33,9 +33,7 @@ if (__name__ == "__main__"):
     max_action = env.action_space.high
 
     ###### 初始化 actor, critics ######
-    actor = Actor(state_dim, action_dim, max_action).to(args.device)
-    actor_target = deepcopy(actor)
-    actor_optimizer = torch.optim.Adam(actor.parameters(), lr=args.actor_learning_rate)
+    mu_actor = Actor(state_dim, action_dim, max_action).to(args.device)
 
     critic = Critic(state_dim, action_dim).to(args.device)
     critic_target = deepcopy(critic)
@@ -43,13 +41,13 @@ if (__name__ == "__main__"):
 
     ###### 初始化 EA ######
     ea = CEM()
-    actor_population = ea.get_init_actor_population(actor)
+    offsprings = ea.get_init_actor_population(mu_actor)
 
     ###### 初始化 replay buffer ######
     replay_buffer = ReplayBuffer(state_dim, action_dim)
 
     ###### 初始化 learning curve ######
-    learning_curve = LearningCurve(args.env_name, actor)
+    learning_curve = LearningCurve(args.env_name, mu_actor)
 
     ###### 初始化環境 ######
     state , _ = env.reset()
@@ -59,7 +57,7 @@ if (__name__ == "__main__"):
     actor_steps = 0
 
     ###### 最一開始的 population 計算 fitness ######
-    for actor in actor_population:
+    for actor in offsprings:
         fitness, evaluate_steps = evaluate(env, 1, actor, replay_buffer, learning_curve)
         actor.fitness = fitness
         steps += evaluate_steps
@@ -68,10 +66,11 @@ if (__name__ == "__main__"):
     while (steps < args.max_steps): 
 
         # CEM 抽新的 offspring
-        offsprings = ea.variate(actor_population, args.population_size)
+        offsprings = ea.variate(offsprings, args.population_size)
 
         # 更新 learning curve 裡的 mu actor
-        learning_curve.update(gene_to_phene(actor, ea.mu_actor))
+        mu_actor_model = gene_to_phene(deepcopy(mu_actor), ea.mu_actor)
+        learning_curve.update(mu_actor_model)
 
         if steps > args.start_steps:
 
