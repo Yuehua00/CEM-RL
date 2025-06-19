@@ -33,7 +33,8 @@ class CEM:
 
         cov = (args.CEM_sigma_init) * torch.ones(params_size, dtype=torch.float32, device=args.device)
 
-        epsilon = torch.randn(args.population_size, params_size, dtype=torch.float32, device=args.device)
+        epsilon_half = np.random.randn(args.population_size // 2, params_size, dtype=torch.float32, device=args.device)
+        epsilon = np.concatenate([epsilon_half, -epsilon_half])
 
         new_gene = self.mu_actor + epsilon * cov.sqrt()
 
@@ -70,7 +71,9 @@ class CEM:
 
             self.damp = self.damp_tau * self.damp + (1 - self.damp_tau) * self.damp_limit
 
-            epsilon = torch.randn_like(genes)    # shape = (population_size , params_size)
+            params_size = self.mu_actor.numel()
+            epsilon_half = np.random.randn(args.population_size // 2, params_size, dtype=torch.float32, device=args.device)
+            epsilon = np.concatenate([epsilon_half, -epsilon_half])  # shape = (population_size , params_size)
 
             new_genes = self.mu_actor + epsilon * cov.sqrt()  # shape = (population_size , params_size)
 
