@@ -29,6 +29,7 @@ class ReplayBuffer:
         self.states[self.ptr] = state
         self.actions[self.ptr] = action
         self.next_states[self.ptr] = next_state
+        
         self.rewards[self.ptr] = reward
         self.not_dones[self.ptr] = not_done
 
