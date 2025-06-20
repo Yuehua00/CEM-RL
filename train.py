@@ -13,7 +13,7 @@ def train_critic(critic: Critic, critic_optimizer: Optimizer, critic_target: Cri
     with torch.no_grad():
 
         noise = (torch.randn_like(actions) * args.policy_noise).clamp(-args.noise_clip, args.noise_clip)
-        next_actions = (actor_target(states) + noise).clamp(-actor_target.max_action, actor_target.max_action)
+        next_actions = (actor_target(next_states) + noise).clamp(-actor_target.max_action, actor_target.max_action)
 
         target_q1, target_q2 = critic_target(next_states, next_actions)
         target_q = torch.min(target_q1, target_q2)
