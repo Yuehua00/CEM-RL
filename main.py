@@ -59,18 +59,14 @@ if (__name__ == "__main__"):
     steps = 0
     actor_steps = 0
 
-    ###### 最一開始的 population 計算 fitness ######
-    for actor in offsprings:
-        fitness, evaluate_steps = evaluate(env, 1, actor, replay_buffer, learning_curve)
-        actor.fitness = fitness
-        steps += evaluate_steps
+    # ###### 最一開始的 population 計算 fitness ######
+    # for actor in offsprings:
+    #     fitness, evaluate_steps = evaluate(env, 1, actor, replay_buffer, learning_curve)
+    #     actor.fitness = fitness
+    #     steps += evaluate_steps
 
     
     while (steps < args.max_steps): 
-
-        # 更新 learning curve 裡的 mu actor
-        mu_actor_model = gene_to_phene(deepcopy(mu_actor), ea.mu_actor)
-        learning_curve.update(mu_actor_model)
 
         if steps > args.start_steps:
 
@@ -105,9 +101,17 @@ if (__name__ == "__main__"):
 
         # CEM 抽新的 offspring
         offsprings = ea.variate(offsprings, args.population_size)
+
+        # 更新 learning curve 裡的 mu actor
+        mu_actor_model = gene_to_phene(deepcopy(mu_actor), ea.mu_actor)
+        learning_curve.update(mu_actor_model)
         
     if args.save_result:
         learning_curve.save()
+
+        # 儲存 reused information
+        if args.importance_mixing:
+            ea.save()
 
     end_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Start date: {start_date}")

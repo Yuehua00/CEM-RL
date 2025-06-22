@@ -38,7 +38,7 @@ parser.add_argument("--importance_mixing", action = "store_true", help = "是否
 
 # CEM設定
 parser.add_argument("--CEM_parents_ratio_actor", type = float, default = 0.5 , help = "parents的比例")
-parser.add_argument("--CEM_cov_discount_actor", type = float, default = 0.2 , help = "cov折扣")
+# parser.add_argument("--CEM_cov_discount_actor", type = float, default = 0.2 , help = "cov折扣")
 parser.add_argument("--CEM_sigma_init", type = float, default = 1e-3, help = "CEM一開始的cov")
 parser.add_argument('--n_grad', default=5, type=int, help = "訓練一半")
 

@@ -1,7 +1,12 @@
 import torch
 import numpy as np
 import math
-from scipy.stats import norm
+
+import os
+import json
+import datetime
+import random
+import string
 
 from config import args
 from .EA_utils import phenes_to_genes, gene_to_phene
@@ -115,6 +120,10 @@ class CEM_IM:
         self.damp_limit = torch.tensor(1e-5).to(torch.float32).detach().to(args.device)
         self.damp_tau = torch.tensor(0.95).to(torch.float32).detach().to(args.device)
 
+        self.n_reused_list = []
+        self.reused_idx_list = []
+
+
     def old_log_pdf(self, sample):
 
         sample = phenes_to_genes([deepcopy(sample)])
@@ -137,12 +146,14 @@ class CEM_IM:
     
     def sample_one_actor(self, actor):
         
+        actor_copy = deepcopy(actor)
+
         param_size = self.mu_actor.numel()
         epsilon = torch.randn(param_size, dtype=torch.float32, device=args.device)
         individual = (self.mu_actor + epsilon * self.cov.sqrt()).view(-1)
 
         ctr = 0
-        for param in actor.parameters():
+        for param in actor_copy.parameters():
 
             n = param.numel()
 
@@ -150,9 +161,9 @@ class CEM_IM:
 
             ctr += n
 
-        actor.fitness = None
+        actor_copy.fitness = None
         
-        return actor
+        return actor_copy
 
 
     def get_init_actor_population(self, mu_actor: Actor) -> list[Actor]:
@@ -204,7 +215,7 @@ class CEM_IM:
             self.damp = self.damp_tau * self.damp + (1 - self.damp_tau) * self.damp_limit
 
             # importance mixing
-            n_resued = 0
+            n_reused = 0
             n_sampled = 0
 
             idx_reused = []
@@ -214,49 +225,59 @@ class CEM_IM:
 
             for i in range(args.population_size):
 
-                if n_resued + n_sampled < args.population_size:
+                sample = old_samples[i]
 
-                    sample = old_samples[i]
+                if n_reused + n_sampled < args.population_size:
 
-                    # u = torch.rand(1)
                     u = np.random.uniform(0, 1)
                     if np.log(u) < self.new_log_pdf(sample) - self.old_log_pdf(sample):
                         
-                        new_population[n_resued] = sample
+                        new_population[n_reused] = sample
                         idx_reused.append(i)
-                        n_resued += 1
+                        n_reused += 1
                 
-                if n_resued + n_sampled < args.population_size:
+                if n_reused + n_sampled < args.population_size:
 
-                    new_sample = self.sample_one_actor(deepcopy(sample))
+                    new_sample = self.sample_one_actor(sample)
 
                     u = np.random.uniform(0, 1)
-                    if np.log(u) >= self.old_log_pdf(new_sample) - self.new_log_pdf(new_sample):
+                    if np.log(1-u) >= self.old_log_pdf(new_sample) - self.new_log_pdf(new_sample):
                         
                         new_population[-n_sampled-1] = new_sample
                         n_sampled += 1
 
-                if n_resued + n_sampled >= args.population_size:
+                if n_reused + n_sampled >= args.population_size:
 
                     break
 
-            cpt = n_resued + n_sampled
+            cpt = n_reused + n_sampled
             while cpt < args.population_size:
 
-                new_sample = self.sample_one_actor(deepcopy(old_samples[0]))
+                new_sample = self.sample_one_actor(old_samples[0])
                 new_population[cpt - n_sampled] = new_sample
                 cpt += 1
 
             self.old_mu = self.mu_actor
             self.old_cov = self.cov
 
-            print(f"n_reused: {n_resued}")
+            self.n_reused_list.append(n_reused)
+            self.reused_idx_list.append(idx_reused)
 
             return new_population
-                    
+        
+    
+    def save(self):
 
+        os.makedirs(args.output_path, exist_ok=True)
 
+        file_name = f"[{args.algorithm}][{args.env_name}][{args.seed}][{datetime.date.today()}][Reused Information][{''.join(random.choices(string.ascii_uppercase, k=6))}].json"
+        path = os.path.join(args.output_path, file_name)
 
-                
+        result = {
+            "Number of reused" : self.n_reused_list,
+            "Reused idndex" : self.reused_idx_list
+        }
 
+        with open(path, mode='w') as file:
             
+            json.dump(result, file)
