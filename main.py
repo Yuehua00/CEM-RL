@@ -8,7 +8,7 @@ from datetime import datetime
 from learning_curve import LearningCurve
 from model import Actor, Critic
 from replay_buffer import ReplayBuffer
-from EA.ES import CEM
+from EA.ES import CEM, CEM_IM
 from EA.EA_utils import gene_to_phene, phenes_to_genes
 from evaluate import evaluate
 from train import train_critic, train_actor
@@ -40,7 +40,10 @@ if (__name__ == "__main__"):
     critic_optimizer = torch.optim.Adam(critic.parameters(), lr=args.critic_learning_rate)
 
     ###### 初始化 EA ######
-    ea = CEM()
+    if args.importance_mixing:
+        ea = CEM_IM()
+    else:
+        ea = CEM()
     offsprings = ea.get_init_actor_population(mu_actor)
 
     ###### 初始化 replay buffer ######
@@ -65,9 +68,6 @@ if (__name__ == "__main__"):
     
     while (steps < args.max_steps): 
 
-        # CEM 抽新的 offspring
-        offsprings = ea.variate(offsprings, args.population_size)
-
         # 更新 learning curve 裡的 mu actor
         mu_actor_model = gene_to_phene(deepcopy(mu_actor), ea.mu_actor)
         learning_curve.update(mu_actor_model)
@@ -89,15 +89,22 @@ if (__name__ == "__main__"):
          
         ###### 評估所有 offspring 的 actor ######
         actor_steps = 0
-        for offspring in offsprings:
+        for i in range(len(offsprings)):
 
-            fitness, evaluate_steps = evaluate(env, 1, offspring, replay_buffer, learning_curve)
-            offspring.fitness = fitness
-            actor_steps += evaluate_steps
+            offspring = offsprings[i]
+
+            if i < args.n_grad or offspring.fitness == None:
+
+                fitness, evaluate_steps = evaluate(env, 1, offspring, replay_buffer, learning_curve)
+                offspring.fitness = fitness
+                actor_steps += evaluate_steps
 
         steps += actor_steps
 
         print(f"steps={learning_curve.steps}  score={learning_curve.learning_curve_scores[-1]:.3f}")
+
+        # CEM 抽新的 offspring
+        offsprings = ea.variate(offsprings, args.population_size)
         
     if args.save_result:
         learning_curve.save()

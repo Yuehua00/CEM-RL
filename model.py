@@ -9,9 +9,9 @@ class Actor(nn.Module):
         
         super().__init__()
 
-        self.l1 = nn.Linear(state_dim, 256)
-        self.l2 = nn.Linear(256, 256)
-        self.l3 = nn.Linear(256, action_dim)
+        self.l1 = nn.Linear(state_dim, 400)
+        self.l2 = nn.Linear(400, 300)
+        self.l3 = nn.Linear(300, action_dim)
 
         self.max_action = torch.from_numpy(max_action).to(torch.float32).detach().to(args.device)
 
@@ -32,14 +32,14 @@ class Critic(nn.Module):
         super().__init__()
 
         # Q1
-        self.l1 = nn.Linear(state_dim + action_dim, 256)
-        self.l2 = nn.Linear(256, 256)
-        self.l3 = nn.Linear(256, 1)
+        self.l1 = nn.Linear(state_dim + action_dim, 400)
+        self.l2 = nn.Linear(400, 300)
+        self.l3 = nn.Linear(300, 1)
 
         # Q2
-        self.l4 = nn.Linear(state_dim + action_dim, 256)
-        self.l5 = nn.Linear(256, 256)
-        self.l6 = nn.Linear(256, 1)
+        self.l4 = nn.Linear(state_dim + action_dim, 400)
+        self.l5 = nn.Linear(400, 300)
+        self.l6 = nn.Linear(300, 1)
 
 
     def forward(self, state: torch.Tensor, action: torch.Tensor):
