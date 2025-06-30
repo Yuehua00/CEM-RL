@@ -62,7 +62,6 @@ class CEM:
         with torch.no_grad():
 
             actor_population = deepcopy(actor_population)
-            actor_population.sort(key=lambda actor: actor.fitness, reverse=True)
 
             genes = phenes_to_genes(actor_population)  # shape = (population_size , params_size)
 

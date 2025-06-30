@@ -65,6 +65,7 @@ if (__name__ == "__main__"):
     #     actor.fitness = fitness
     #     steps += evaluate_steps
 
+    population = []
     
     while (steps < args.max_steps): 
 
@@ -97,14 +98,19 @@ if (__name__ == "__main__"):
 
         steps += actor_steps
 
-        print(f"steps={learning_curve.steps}  score={learning_curve.learning_curve_scores[-1]:.3f}")
+        # mu + lambda
+        population.extend(offsprings)
+        population.sort(key=lambda actor: actor.fitness, reverse=True)
+        population = population[:args.population_size]
 
         # CEM 抽新的 offspring
-        offsprings = ea.variate(offsprings, args.population_size)
+        offsprings = ea.variate(population, args.population_size)
 
         # 更新 learning curve 裡的 mu actor
         mu_actor_model = gene_to_phene(deepcopy(mu_actor), ea.mu_actor)
         learning_curve.update(mu_actor_model)
+
+        print(f"steps={learning_curve.steps}  score={learning_curve.learning_curve_scores[-1]:.3f}")
         
     if args.save_result:
         learning_curve.save()
