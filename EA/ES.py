@@ -40,8 +40,9 @@ class CEM:
 
         cov = (args.CEM_sigma_init) * torch.ones(params_size, dtype=torch.float32, device=args.device)
 
-        epsilon_half = torch.randn(args.population_size // 2, params_size, dtype=torch.float32, device=args.device)
-        epsilon = torch.cat([epsilon_half, -epsilon_half], dim=0)
+        # epsilon_half = torch.randn(args.population_size // 2, params_size, dtype=torch.float32, device=args.device)
+        # epsilon = torch.cat([epsilon_half, -epsilon_half], dim=0)
+        epsilon = torch.randn(args.population_size, params_size, dtype = torch.float32, device = args.device)
 
         new_gene = self.mu_actor + epsilon * cov.sqrt()
 
@@ -78,8 +79,9 @@ class CEM:
             self.damp = self.damp_tau * self.damp + (1 - self.damp_tau) * self.damp_limit
 
             params_size = self.mu_actor.numel()
-            epsilon_half = torch.randn(args.population_size // 2, params_size, dtype=torch.float32, device=args.device)
-            epsilon = torch.cat([epsilon_half, -epsilon_half], dim=0)  # shape = (population_size , params_size)
+            # epsilon_half = torch.randn(args.population_size // 2, params_size, dtype=torch.float32, device=args.device)
+            # epsilon = torch.cat([epsilon_half, -epsilon_half], dim=0)  # shape = (population_size , params_size)
+            epsilon = torch.randn(args.population_size, params_size, dtype = torch.float32, device = args.device)
 
             new_genes = self.mu_actor + epsilon * cov.sqrt()  # shape = (population_size , params_size)
 
@@ -175,8 +177,9 @@ class CEM_IM:
         self.old_mu = self.mu_actor
         self.old_cov = self.cov
         
-        epsilon_half = torch.randn(args.population_size // 2, params_size, dtype=torch.float32, device=args.device)
-        epsilon = torch.cat([epsilon_half, -epsilon_half], dim=0)
+        # epsilon_half = torch.randn(args.population_size // 2, params_size, dtype=torch.float32, device=args.device)
+        # epsilon = torch.cat([epsilon_half, -epsilon_half], dim=0)
+        epsilon = torch.randn(args.population_size, params_size, dtype = torch.float32, device = args.device)
 
         new_gene = self.mu_actor + epsilon * self.cov.sqrt()
 
