@@ -13,6 +13,8 @@ from EA.EA_utils import gene_to_phene, phenes_to_genes
 from evaluate import evaluate
 from train import train_critic, train_actor
 
+import random
+
 
 if (__name__ == "__main__"):
 
@@ -101,6 +103,8 @@ if (__name__ == "__main__"):
 
         # CEM 抽新的 offspring
         offsprings = ea.variate(offsprings, args.population_size)
+        random.shuffle(offsprings)
+        print("SHUFFLE")
 
         # 更新 learning curve 裡的 mu actor
         mu_actor_model = gene_to_phene(deepcopy(mu_actor), ea.mu_actor)
