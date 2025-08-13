@@ -40,10 +40,8 @@ if (__name__ == "__main__"):
     critic_optimizer = torch.optim.Adam(critic.parameters(), lr=args.critic_learning_rate)
 
     ###### 初始化 EA ######
-    if args.importance_mixing:
-        ea = CEM_IM()
-    else:
-        ea = CEM()
+    ea = CEM_IM()
+
     offsprings = ea.get_init_actor_population(mu_actor)
 
     ###### 初始化 replay buffer ######
@@ -77,23 +75,36 @@ if (__name__ == "__main__"):
                 actor_optimizer = torch.optim.Adam(actor.parameters(), lr=args.actor_learning_rate)
                 actor_target = deepcopy(actor).requires_grad_(False)
 
-                for _ in range(actor_steps // len(offsprings)):
+                for _ in range(actor_steps + reused_steps // args.n_grad):
                     train_critic(critic, critic_optimizer, critic_target, actor_target, replay_buffer)
 
-                for _ in range(actor_steps):
+                for _ in range(actor_steps + reused_steps):
                     train_actor(actor, actor_optimizer, critic, replay_buffer)
-         
+
+        
         ###### 評估所有 offspring 的 actor ######
         actor_steps = 0
+        reused_steps = 0 
         for i in range(len(offsprings)):
 
             offspring = offsprings[i]
 
             if i < args.n_grad or offspring.fitness == None:
 
+                actor.memory_start_pos = replay_buffer.get_pos()
+
                 fitness, evaluate_steps = evaluate(env, 1, offspring, replay_buffer, learning_curve)
                 offspring.fitness = fitness
                 actor_steps += evaluate_steps
+
+                actor.reused_steps = evaluate_steps
+
+            else:
+
+                reused_steps += actor.reused_steps
+                replay_buffer.repeat(int(actor.memory_start_pos), int((actor.memory_start_pos + actor.reused_steps) % args.replay_buffer_size))
+
+
 
         steps += actor_steps
 

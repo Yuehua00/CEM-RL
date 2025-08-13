@@ -34,7 +34,6 @@ parser.add_argument('--policy_freq', type = int, default = 2)
 
 # EA設定
 parser.add_argument("--population_size", type = int, default = 10)
-parser.add_argument("--importance_mixing", action = "store_true", help = "是否使用 importancce-mixing")
 
 # CEM設定
 parser.add_argument("--CEM_parents_ratio_actor", type = float, default = 0.5 , help = "parents的比例")

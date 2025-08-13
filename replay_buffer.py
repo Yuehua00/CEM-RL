@@ -46,3 +46,29 @@ class ReplayBuffer:
             self.rewards[indices],
             self.not_dones[indices]
         )
+    
+
+    def get_pos(self):
+
+        return self.ptr
+    
+
+    def repeat(self, start_pos, end_pos):
+
+        indices = []
+
+        if start_pos < end_pos:
+            indices = list(range(start_pos, end_pos))
+        else:
+            indices = list(range(start_pos, args.replay_buffer_size)) + list(range(0, end_pos))
+
+        for i in indices:
+
+            self.states[self.ptr] = self.states[i].clone()
+            self.actions[self.ptr] = self.actions[i].clone()
+            self.next_states[self.ptr] = self.next_states[i].clone()
+            self.rewards[self.ptr] = self.rewards[i].clone()
+            self.not_dones[self.ptr] = self.not_dones[i].clone()
+
+            self.ptr = (self.ptr + 1) % (args.replay_buffer_size)
+            self.current_size = min(self.current_size + 1, args.replay_buffer_size)

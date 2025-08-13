@@ -17,6 +17,9 @@ class Actor(nn.Module):
 
         self.fitness = None
 
+        self.reused_steps = 0
+        self.memory_start_pos = None
+
 
     def forward(self, state: torch.Tensor):
 
