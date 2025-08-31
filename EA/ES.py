@@ -120,7 +120,7 @@ class CEM_IM:
         self.damp_limit = torch.tensor(1e-5).to(torch.float32).detach().to(args.device)
         self.damp_tau = torch.tensor(0.95).to(torch.float32).detach().to(args.device)
 
-        self.n_reused_list = []
+        self.n_reused = 0
         self.reused_idx_list = []
 
 
@@ -260,24 +260,24 @@ class CEM_IM:
             self.old_mu = self.mu_actor
             self.old_cov = self.cov
 
-            self.n_reused_list.append(n_reused)
-            self.reused_idx_list.append(idx_reused)
+            self.n_reused = n_reused
+            self.reused_idx_list = idx_reused
 
             return new_population
         
     
-    def save(self):
+    # def save(self):
 
-        os.makedirs(args.output_path, exist_ok=True)
+    #     os.makedirs(args.output_path, exist_ok=True)
 
-        file_name = f"[{args.algorithm}][{args.env_name}][{args.seed}][{datetime.date.today()}][Reused Information][{''.join(random.choices(string.ascii_uppercase, k=6))}].json"
-        path = os.path.join(args.output_path, file_name)
+    #     file_name = f"[{args.algorithm}][{args.env_name}][{args.seed}][{datetime.date.today()}][Reused Information][{''.join(random.choices(string.ascii_uppercase, k=6))}].json"
+    #     path = os.path.join(args.output_path, file_name)
 
-        result = {
-            "Number of reused" : self.n_reused_list,
-            "Reused idndex" : self.reused_idx_list
-        }
+    #     result = {
+    #         "Number of reused" : self.n_reused_list,
+    #         "Reused idndex" : self.reused_idx_list
+    #     }
 
-        with open(path, mode='w') as file:
+    #     with open(path, mode='w') as file:
             
-            json.dump(result, file)
+    #         json.dump(result, file)

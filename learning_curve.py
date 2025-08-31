@@ -23,18 +23,27 @@ class LearningCurve:
         self.env_name = env_name
         self.mu_actor = deepcopy(mu_actor)
 
+        self.n_reused_list = []
+        self.reused_idx_list = []
+        self.n_reused_number = 0
+        self.reused_idx = []
+
         self.test_initial_performance()
 
 
-    def update(self, mu_actor: Actor):
+    def update(self, mu_actor: Actor, n_reused_number: int, reused_idx: list):
         
         self.mu_actor = deepcopy(mu_actor)
+        self.n_reused_number = n_reused_number
+        self.reused_idx = reused_idx
 
 
     def test_initial_performance(self):
 
         self.learning_curve_steps.append(0)
         self.learning_curve_scores.append(self.test_performance(self.mu_actor))
+        self.n_reused_list.append(0)
+        self.reused_idx_list.append([])
 
 
     def add_step(self):
@@ -45,6 +54,9 @@ class LearningCurve:
 
             self.learning_curve_steps.append(self.steps)
             self.learning_curve_scores.append(self.test_performance(self.mu_actor))
+
+            self.n_reused_list.append(self.n_reused_number)
+            self.reused_idx_list.append(self.reused_idx)
 
 
     def test_performance(self, actor: Actor):
@@ -91,7 +103,9 @@ class LearningCurve:
             "Learning Curve" : {
                 "Steps" : self.learning_curve_steps,
                 "mu_actor" : self.learning_curve_scores
-            }
+            },
+            "Number of reused" : self.n_reused_list,
+            "Reused idndex" : self.reused_idx_list
         }
 
         with open(path, mode='w') as file:

@@ -115,14 +115,14 @@ if (__name__ == "__main__"):
 
         # 更新 learning curve 裡的 mu actor
         mu_actor_model = gene_to_phene(deepcopy(mu_actor), ea.mu_actor)
-        learning_curve.update(mu_actor_model)
+        learning_curve.update(mu_actor_model, ea.n_reused, ea.reused_idx_list)
         
     if args.save_result:
         learning_curve.save()
 
         # 儲存 reused information
-        if args.importance_mixing:
-            ea.save()
+        # if args.importance_mixing:
+        #     ea.save()
 
     end_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Start date: {start_date}")
